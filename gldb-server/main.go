@@ -6,11 +6,12 @@ import (
     "encoding/json"
     "log"
     "strings"
+    "os"
 )
 
 func main() {
     log.Print("Starting GLDB server")
-    var db, err = gldb.GLDBFromMongoURL("mongodb://gldb:popple@ds027668.mongolab.com:27668/gldb")
+    var db, err = gldb.GLDBFromMongoURL(os.Getenv("GLDB_MONGO_URL"))
     if err != nil {
         panic(err)
     }
