@@ -2,9 +2,9 @@ package gldb
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"io/ioutil"
 )
 
 func jsonFromURL(u string, v interface{}) (err error) {
@@ -23,15 +23,15 @@ func jsonFromURL(u string, v interface{}) (err error) {
 	}
 	if len(parsed.Fragment) > 0 {
 		var f interface{}
-    	err = json.Unmarshal(body, &f)
-    	if err != nil {
-    		return
-    	}
-    	m := f.(map[string]interface{})
-    	body, err = json.Marshal(m[parsed.Fragment])
-    	if err != nil {
-    		return
-    	}
+		err = json.Unmarshal(body, &f)
+		if err != nil {
+			return
+		}
+		m := f.(map[string]interface{})
+		body, err = json.Marshal(m[parsed.Fragment])
+		if err != nil {
+			return
+		}
 	}
 	err = json.Unmarshal(body, v)
 	return

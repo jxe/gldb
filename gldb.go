@@ -5,8 +5,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-
-
 type GLDB struct {
 	topics  *mgo.Collection
 	doables *mgo.Collection
@@ -14,13 +12,9 @@ type GLDB struct {
 	reviews *mgo.Collection
 }
 
-
-
-
 // TODO
 
 func (t *TopicInCity) Doables() []Doable { return nil }
-
 
 func doableFromURL(url string) (d *Doable, err error) {
 	d = &Doable{}
@@ -45,7 +39,6 @@ func (d *Doable) loadGuides() (guides []*Guide, err error) {
 	return
 }
 
-
 func (db *GLDB) AddReview(r *Review) (err error) {
 	doable, err := doableFromURL(r.DoableURL)
 	if err != nil {
@@ -63,10 +56,7 @@ func (db *GLDB) AddReview(r *Review) (err error) {
 	return
 }
 
-
-
 // MongoDB specific
-
 
 func (db *GLDB) Topics(city, desire string) (result []*TopicInCity) {
 	// for now, just return topics that have the city and desire
@@ -84,7 +74,6 @@ func (db *GLDB) Topics(city, desire string) (result []*TopicInCity) {
 	}
 	return
 }
-
 
 func (db *GLDB) TopicIDsForCityAndDesire(city, desire string) (topics []string) {
 	err := db.guides.Find(bson.M{"desires": desire, "city": city}).Distinct("topic", &topics)
@@ -111,7 +100,7 @@ func GLDBFromMongoURL(url string) (d *GLDB, err error) {
 
 func (db *GLDB) Close() {
 	db.topics.Database.Session.Close()
-	return 
+	return
 }
 
 func (db *GLDB) ensureDoable(d *Doable) {
@@ -122,7 +111,7 @@ func (db *GLDB) ensureDoable(d *Doable) {
 }
 
 func (db *GLDB) ensureGuide(g *Guide) {
-	_, err := db.guides.Upsert(bson.M{ "URL":g.URL }, g)
+	_, err := db.guides.Upsert(bson.M{"URL": g.URL}, g)
 	if err != nil {
 		panic(err)
 	}

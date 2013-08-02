@@ -38,7 +38,7 @@ type Topic struct {
 }
 
 type TopicInCity struct {
-	City  string
-	Topic string
+	City   string
+	Topic  string
 	Guides []*Guide
 }
