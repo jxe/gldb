@@ -17,7 +17,7 @@ func main() {
 	}
 	log.Print("Connected to mongolab")
 
-	web.Get("/did", func(c *web.Context) string {
+	web.Post("/did", func(c *web.Context) string {
 		r := &gldb.Review{
 			DoableURL:            c.Params["what"],
 			City:                 c.Params["city"],
