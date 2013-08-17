@@ -5,8 +5,9 @@ type Doable struct {
 	Kind          string
 	Title         string
 	City          string
-	Desires       []string
-	Topics        []string
+	Notes		  string
+	Vibes         []string
+	Skills        []string
 	GuideURLs     []string
 	AuthorURLs    []string
 	ProvidersURLs []string
@@ -16,9 +17,9 @@ type Guide struct {
 	URL        string
 	Title      string
 	City       string
-	Topic      string
+	Skill      string
 	AuthorURLs []string
-	Desires    []string
+	Vibes      []string
 }
 
 type Review struct {
@@ -26,19 +27,13 @@ type Review struct {
 	City                 string
 	Comment              string
 	AuthorURLs           []string
-	SatisfiedDesires     []string
+	SatisfiedVibes       []string
 	RelativeToDoableURLs []string
 }
 
-type Topic struct {
+type Skill struct {
 	id         string
 	aliasOf    string
 	FullName   string
 	otherNames []string
-}
-
-type TopicInCity struct {
-	City   string
-	Topic  string
-	Guides []*Guide
 }

@@ -1,12 +1,13 @@
 package gldb
 
 import (
+	"github.com/jxe/gldb/scraper"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 type GLDB struct {
-	topics  *mgo.Collection
+	skills  *mgo.Collection
 	doables *mgo.Collection
 	guides  *mgo.Collection
 	reviews *mgo.Collection
@@ -14,71 +15,52 @@ type GLDB struct {
 
 // TODO
 
-func (t *TopicInCity) Doables() []Doable { return nil }
-
-func doableFromURL(url string) (d *Doable, err error) {
-	d = &Doable{}
-	err = jsonFromURL(url, d)
-	if err == nil {
-		d.URL = url
-	}
-	return
-}
-
-func (d *Doable) loadGuides() (guides []*Guide, err error) {
-	guides = make([]*Guide, len(d.GuideURLs))
-	for i, url := range d.GuideURLs {
-		g := &Guide{}
-		err = jsonFromURL(url, g)
-		if err != nil {
-			return
-		}
-		g.URL = url
-		guides[i] = g
-	}
-	return
+type loadable interface {
+	loadInDB(*GLDB)
 }
 
 func (db *GLDB) AddReview(r *Review) (err error) {
-	doable, err := doableFromURL(r.DoableURL)
+	scrapeResults, err := scraper.Slurp(r.DoableURL)
 	if err != nil {
 		return
 	}
-	guides, err := doable.loadGuides()
-	if err != nil {
-		return
+	for _, r := range scrapeResults {
+		r.(loadable).loadInDB(db)
 	}
-	db.ensureDoable(doable)
-	for _, g := range guides {
-		db.ensureGuide(g)
-	}
-	db.reviews.Insert(r)
 	return
 }
 
+type SkillInCity struct {
+	City   string
+	Skill  string
+	Guides []*Guide
+}
+
+func (t *SkillInCity) Doables() []Doable { return nil }
+
 // MongoDB specific
 
-func (db *GLDB) Topics(city, desire string) (result []*TopicInCity) {
-	// for now, just return topics that have the city and desire
-	// later, add pools of doables under a topic without a guide
-	topics := db.TopicIDsForCityAndDesire(city, desire)
-	result = make([]*TopicInCity, len(topics))
-	for i, t := range topics {
+func (db *GLDB) Skills(city, vibe string) (result []*SkillInCity) {
+	// for now, just return skills that have the city and vibe
+	// later, add pools of doables under a skill without a guide
+	skills := db.SkillIDsForCityAndVibe(city, vibe)
+	result = make([]*SkillInCity, len(skills))
+	for i, t := range skills {
 		guides := []*Guide{}
-		result[i] = &TopicInCity{city, t, guides}
-		err := db.guides.Find(bson.M{"topic": t, "city": city}).All(&guides)
+		result[i] = &SkillInCity{city, t, guides}
+		err := db.guides.Find(bson.M{"skill": t, "city": city}).All(&guides)
 		if err != nil {
-			panic("Failed to get guides")
+			panic("Failed to get guides: " + err.Error())
 		}
 		result[i].Guides = guides
 	}
 	return
 }
 
-func (db *GLDB) TopicIDsForCityAndDesire(city, desire string) (topics []string) {
-	err := db.guides.Find(bson.M{"desires": desire, "city": city}).Distinct("topic", &topics)
+func (db *GLDB) SkillIDsForCityAndVibe(city, vibe string) (skills []string) {
+	err := db.guides.Find(bson.M{"vibes": vibe, "city": city}).Distinct("skill", &skills)
 	if err != nil {
-		panic("Failed to get topics")
+		panic("Failed to get skills" + err.Error())
 	}
 	return
 }
@@ -90,7 +72,7 @@ func GLDBFromMongoURL(url string) (d *GLDB, err error) {
 	}
 	db := session.DB("")
 	d = &GLDB{
-		topics:  db.C("topics"),
+		skills:  db.C("skills"),
 		doables: db.C("doables"),
 		guides:  db.C("guides"),
 		reviews: db.C("reviews"),
@@ -99,19 +81,23 @@ func GLDBFromMongoURL(url string) (d *GLDB, err error) {
 }
 
 func (db *GLDB) Close() {
-	db.topics.Database.Session.Close()
+	db.skills.Database.Session.Close()
 	return
 }
 
-func (db *GLDB) ensureDoable(d *Doable) {
-	_, err := db.doables.Upsert(bson.M{"URL": d.URL}, d)
+func (r *Review) loadInDB(db *GLDB) {
+	db.reviews.Insert(r)
+}
+
+func (g *Guide) loadInDB(db *GLDB) {
+	_, err := db.guides.Upsert(bson.M{"URL": g.URL}, g)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (db *GLDB) ensureGuide(g *Guide) {
-	_, err := db.guides.Upsert(bson.M{"URL": g.URL}, g)
+func (d *Doable) loadInDB(db *GLDB) {
+	_, err := db.guides.Upsert(bson.M{"URL": d.URL}, d)
 	if err != nil {
 		panic(err)
 	}
