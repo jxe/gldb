@@ -4,7 +4,8 @@ import "time"
 
 type GLDB interface {
 	AddReviewAndRelatedData(r *Review, metro, sociographic, comment string, loadables []interface{})
-	SubjectsInMetro(metro string, quality string) (result []*SubjectInMetro)
+	SubjectsInMetro(metro, quality string) (result []*SubjectInMetro)
+	DoablesForSubjectInMetro(metro, subject string) (result []*Doable)
 }
 
 type Doable struct {

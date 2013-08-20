@@ -39,8 +39,19 @@ func main() {
 	// querying
 
 	web.Get("/subjects", func(c *web.Context) string {
+		c.ContentType("json")
 		interests := db.SubjectsInMetro(c.Params["metro"], c.Params["quality"])
-		body, err := json.Marshal(interests)
+		body, err := json.MarshalIndent(interests, "", "    ")
+		if err != nil {
+			panic(err)
+		}
+		return string(body)
+	})
+
+	web.Get("/subject", func(c *web.Context) string {
+		c.ContentType("json")
+		doables := db.DoablesForSubjectInMetro(c.Params["metro"], c.Params["subject"])
+		body, err := json.MarshalIndent(doables, "", "    ")
 		if err != nil {
 			panic(err)
 		}
@@ -55,11 +66,12 @@ func main() {
 	})
 
 	web.Get("/json", func(c *web.Context) string {
+		c.ContentType("json")
 		results, err := scraper.Slurp(c.Params["url"])
 		if err != nil {
 			panic(err)
 		}
-		body, err := json.Marshal(results)
+		body, err := json.MarshalIndent(results, "", "    ")
 		if err != nil {
 			panic(err)
 		}

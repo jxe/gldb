@@ -51,6 +51,15 @@ func (db MongoGLDB) SubjectsInMetro(metro, quality string) (result []*SubjectInM
 	return
 }
 
+func (db MongoGLDB) DoablesForSubjectInMetro(metro, subject string) (result []*Doable) {
+	err := db.C("doables").Find(bson.M{"metro": metro, "subjects": subject}).All(&result)
+	if err != nil {
+		panic(err)
+	}
+	return
+}
+
+
 func GLDBFromMongoURL(url string) (d GLDB, err error) {
 	session, err := mgo.Dial(url)
 	if err != nil {

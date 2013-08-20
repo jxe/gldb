@@ -9,7 +9,7 @@ import (
 
 func parentAttr(s *goquery.Selection, attr string) string {
 	sel := "[" + attr + "]"
-	res, _ := s.Closest(sel).Attr(sel)
+	res, _ := s.Closest(sel).Attr(attr)
 	return res
 }
 
@@ -37,13 +37,13 @@ func htmlScraper(f *Fetcher) (recognized bool) {
 		})
 	})
 
-	e.Find("[subject]").Not("[doable]").Each(func(i int, guide *goquery.Selection) {
+	e.Find("[subjects]").Not("[doable]").Each(func(i int, guide *goquery.Selection) {
 		foundSomething = true
 		s, _ := guide.Attr("subjects")
 		f.fetched(&gldb.Guide{
 			URL:         f.url,
 			Subject:     s,
-			Title:       childElemValue(guide, "h3"),
+			Title:       childElemValue(guide, "h1"),
 			Description: childElemValue(guide, "p"),
 			Metro:       parentAttr(guide, "metro"),
 			Qualities:   strings.Split(parentAttr(guide, "qualities"), ","),
@@ -55,7 +55,7 @@ func htmlScraper(f *Fetcher) (recognized bool) {
 
 
 func videoScraper(f *Fetcher) (recognized bool) {
-	matched, _ := regexp.MatchString(f.url, "vimeo|youtube")
+	matched, _ := regexp.MatchString("vimeo|youtube", f.url)
 	if !matched {
 		return false
 	}
