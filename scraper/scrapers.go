@@ -2,7 +2,7 @@ package scraper
 
 import (
 	"github.com/PuerkitoBio/goquery"
-	"github.com/jxe/gldb"
+	"github.com/timewellspent/gldb"
 	"regexp"
 	"strings"
 )

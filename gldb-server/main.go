@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"github.com/hoisie/web"
-	"github.com/jxe/gldb"
-	"github.com/jxe/gldb/scraper"
+	"github.com/timewellspent/gldb"
+	"github.com/timewellspent/gldb/scraper"
 	"log"
 	"os"
 	"strings"
