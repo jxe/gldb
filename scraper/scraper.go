@@ -1,24 +1,27 @@
 package scraper
 
 import (
-	// "errors"
+	"errors"
 	"github.com/PuerkitoBio/goquery"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	// "strings"
 )
 
 func Slurp(u string) (results []interface{}, err error) {
 	defer func() {
-		err = recover().(error)
+		thing := recover()
+		switch thing.(type) {
+		case error:
+			err = thing.(error)
+		}
 	}()
 	f := &Fetcher{urlsToFetch: []string{u}}
 	f.spin()
 	return f.fetchedObjects, err
 }
 
-type scraper func(f Fetcher) (recognized bool)
+type scraper func(f *Fetcher) (recognized bool)
 
 type Fetcher struct {
 	url            string
@@ -30,11 +33,11 @@ type Fetcher struct {
 	fetchedObjects []interface{}
 }
 
-func (f Fetcher) fetched(thing interface{}) {
+func (f *Fetcher) fetched(thing interface{}) {
 	f.fetchedObjects = append(f.fetchedObjects, thing)
 }
 
-func (f Fetcher) spin() {
+func (f *Fetcher) spin() {
 FETCHES:
 	for len(f.urlsToFetch) > 0 {
 		f.url = f.urlsToFetch[0]
@@ -46,7 +49,7 @@ FETCHES:
 				continue FETCHES
 			}
 		}
-		panic("No recognizer found")
+		panic(errors.New("No recognizer found"))
 		return
 	}
 	return
@@ -56,7 +59,7 @@ func NewFetcherForURL(url string) *Fetcher {
 	return &Fetcher{url: url}
 }
 
-func (f Fetcher) Response() (r *http.Response) {
+func (f *Fetcher) Response() (r *http.Response) {
 	if f.response == nil {
 		var err error
 		f.response, err = http.Get(f.url)
@@ -67,7 +70,7 @@ func (f Fetcher) Response() (r *http.Response) {
 	return f.response
 }
 
-func (f Fetcher) ResponseBodyBytes() (body *[]byte) {
+func (f *Fetcher) ResponseBodyBytes() (body *[]byte) {
 	if f.body == nil {
 		defer f.Response().Body.Close()
 		var err error
@@ -80,11 +83,11 @@ func (f Fetcher) ResponseBodyBytes() (body *[]byte) {
 	return f.body
 }
 
-func (f Fetcher) ContentType() string {
+func (f *Fetcher) ContentType() string {
 	return f.Response().Header.Get("Content-Type")
 }
 
-func (f Fetcher) HTML() *goquery.Document {
+func (f *Fetcher) HTML() *goquery.Document {
 	if f.html == nil {
 		html, err := goquery.NewDocumentFromResponse(f.Response())
 		if err != nil {
@@ -95,7 +98,7 @@ func (f Fetcher) HTML() *goquery.Document {
 	return f.html
 }
 
-func (f Fetcher) ParsedURL() *url.URL {
+func (f *Fetcher) ParsedURL() *url.URL {
 	parsed, err := url.Parse(f.url)
 	if err != nil {
 		panic(err)

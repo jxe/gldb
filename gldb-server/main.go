@@ -38,7 +38,7 @@ func main() {
 
 	// querying
 
-	web.Get("/skills", func(c *web.Context) string {
+	web.Get("/subjects", func(c *web.Context) string {
 		interests := db.SubjectsInMetro(c.Params["metro"], c.Params["quality"])
 		body, err := json.Marshal(interests)
 		if err != nil {

@@ -3,29 +3,21 @@ package scraper
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/jxe/gldb"
+	"regexp"
 	"strings"
 )
 
-// function findDoables(){
-//   // gather anything with a [doable] attr
-//   // search for subject, quality, and metro in self/parents
-//   // search for title and description as child headers and paras
-//   // check if guides in parent
-// }
-
-// function findGuides(){
-//   // gather anything with a [subject] that's not [doable]
-// }
-
 func parentAttr(s *goquery.Selection, attr string) string {
-	return ""
+	sel := "[" + attr + "]"
+	res, _ := s.Closest(sel).Attr(sel)
+	return res
 }
 
 func childElemValue(s *goquery.Selection, sel string) string {
-	return ""
+	return s.ChildrenFiltered(sel).Text()
 }
 
-func htmlScraper(f Fetcher) (recognized bool) {
+func htmlScraper(f *Fetcher) (recognized bool) {
 	e := f.HTML()
 	foundSomething := false
 
@@ -61,7 +53,41 @@ func htmlScraper(f Fetcher) (recognized bool) {
 	return foundSomething
 }
 
+
+func videoScraper(f *Fetcher) (recognized bool) {
+	matched, _ := regexp.MatchString(f.url, "vimeo|youtube")
+	if !matched {
+		return false
+	}
+	f.fetched(&gldb.Doable{
+		URL:         f.url,
+		Type:        "video",
+		Title:       "Unknown Video",
+		Description: "",
+		Metro:       "",
+		Qualities:   []string{},
+		Subjects:    []string{},
+		GuideURLs:   []string{},
+	})
+	return true
+}
+
+func defaultScraper(f *Fetcher) (recognized bool) {
+	f.fetched(&gldb.Doable{
+		URL:         f.url,
+		Type:        "article",
+		Title:       "Unknown Article",
+		Description: "",
+		Metro:       "",
+		Qualities:   []string{},
+		Subjects:    []string{},
+		GuideURLs:   []string{},
+	})
+	return true
+}
+
 var scrapers = []scraper{
 	htmlScraper,
-	// jsonScraper,
+	videoScraper,
+	defaultScraper,
 }
