@@ -78,5 +78,5 @@ func main() {
 		return string(body)
 	})
 
-	web.Run("0.0.0.0:9999")
+	web.Run("0.0.0.0:" + os.Getenv("PORT"))
 }
